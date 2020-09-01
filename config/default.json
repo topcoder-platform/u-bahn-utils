@@ -7,5 +7,6 @@
   "AUTH0_CLIENT_ID": "",
   "AUTH0_CLIENT_SECRET": "",
   "AUTH0_AUDIENCE": "https://u-bahn.topcoder.com",
-  "TOKEN_CACHE_TIME": 86400000
+  "TOKEN_CACHE_TIME": 86400000,
+  "SLEEP_LENGTH": 3000
 }

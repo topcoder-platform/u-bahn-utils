@@ -43,10 +43,10 @@ async function createSkill() {
         })
       } catch (error) {
         console.log(`Error for skill: '${name}'`)
-        // console.log(error)
+        console.log(error.message)
         fails[fails.length] = { postion: i, name}
       }
-      await sleep(3000)
+      await sleep(config.SLEEP_LENGTH)
     }
   } catch (e) {
     console.log(e)
