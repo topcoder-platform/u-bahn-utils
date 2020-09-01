@@ -1,5 +1,11 @@
 {
   "DOMAIN": "api.topcoder-dev.com",
   "FILE_SKILLS": "skills-list.txt",
-  "SKILLPROVIDERID": ""
+  "SKILLPROVIDERID": "",
+  "AUTH0_URL": "https://topcoder-dev.auth0.com/oauth/token",
+  "AUTH0_PROXY_SERVER_URL": "https://auth0proxy.topcoder-dev.com/token",
+  "AUTH0_CLIENT_ID": "",
+  "AUTH0_CLIENT_SECRET": "",
+  "AUTH0_AUDIENCE": "https://u-bahn.topcoder.com",
+  "TOKEN_CACHE_TIME": 86400000
 }
