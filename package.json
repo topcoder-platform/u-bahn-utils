@@ -1,0 +1,14 @@
+{
+  "name": "u-bahn-utils",
+  "version": "1.0.0",
+  "description": "U-Bahn utilities ",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "lazybaer <lazybaer@topcoder.com>",
+  "license": "ISC",
+  "dependencies": {
+    "axios": "^0.20.0"
+  }
+}
