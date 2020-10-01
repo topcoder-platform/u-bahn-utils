@@ -17,11 +17,12 @@
  */
 
 //require('dotenv').config()
-const axios = require('axios')
+const _ = require('lodash')
 const config = require('config')
 const { argv } = require('yargs')
+const axios = require('axios')
 const m2mAuth = require('tc-core-library-js').auth.m2m
-const _ = require('lodash')
+const qs = require('querystring');
 const { parse } = require('json2csv')
 const fs = require('fs')
 
@@ -135,7 +136,7 @@ async function getMembersInGroup (groupId) {
  * Returns the member handle for the member id
  * @param {Number} memberId The member id
  */
-async function getMemberHandle (memberId) {
+async function getMemberRecord (memberId) {
   const token = await getM2Mtoken()
 
   try {
@@ -160,11 +161,36 @@ async function getMemberHandle (memberId) {
 }
 
 /**
+ * Returns the member location for the member handle
+ * @param {String} handle The member handle
+ */
+async function getMemberLocation(handle) {
+  const token = await getM2Mtoken()
+
+  try {
+    const res = await axios.get(`${config.MEMBERS_API_URL}/${qs.escape(handle)}`, {
+      headers: {
+        Authorization: `Bearer ${token}`
+      }
+    })
+    console.log(res.data)
+    const location = _.pick(_.get(res, 'data[0]', {}), ['homeCountryCode', 'competitionCountryCode'])
+
+    return location.homeCountryCode || location.competitionCountryCode || 'n/a'
+  } catch (error) {
+    console.log(`Error getting the member location for member with handle: ${handle}`)
+    console.log(error)
+
+    throw error
+  }
+}
+
+/**
  * Returns the member's skills
  * @param {String} handle The member's handle
  */
 async function getMemberSkills (handle) {
-  const url = `${config.MEMBERS_API_URL}/${handle}/skills`
+  const url = `${config.MEMBERS_API_URL}/${qs.escape(handle)}/skills`
 
   const token = await getM2Mtoken()
 
@@ -204,7 +230,7 @@ async function getMemberSkills (handle) {
  * @param {Array} data Array of objects
  */
 async function getCSV (data) {
-  const columns = ['handle', 'firstName', 'lastName', 'email', 'skillProviderName', 'skillName', 'metricValue']
+  const columns = ['handle', 'firstName', 'lastName', 'email', 'isAvailable', 'company', 'location', 'title', 'skillProviderName', 'skillName', 'metricValue']
 
   try {
     const csv = parse(data, { fields: columns })
@@ -262,7 +288,7 @@ async function start () {
   //const memberIds = [8547899]
 
   for (let i = 0; i < memberIds.length; i++) {
-    const user = await getMemberHandle(memberIds[i])
+    const user = await getMemberRecord(memberIds[i])
     console.log(`pushing '${user.handle}' into stack`)
     users.push(user)
     console.log(`throttling call for ${config.SLEEP_LENGTH}s`)
@@ -273,6 +299,7 @@ async function start () {
 
   for (let i = 0; i < users.length; i++) {
     const handle = users[i].handle
+    const location = await getMemberLocation(handle)
     const skills = await getMemberSkills(handle)
 
     if (skills.length === 0) {
@@ -283,9 +310,13 @@ async function start () {
     for (let j = 0; j < skills.length; j++) {
       usersWithSkills.push({
         handle,
-        firstName,
-        lastName,
-        email,
+        firstName: users[i].firstName,
+        lastName: users[i].lastName,
+        email: users[i].email,
+        isAvailable: "true",
+        company: "Topcoder",
+        location,
+        title: "Member",
         skillProviderName,
         skillName: skills[j].name,
         metricValue: '' + skills[j].score
