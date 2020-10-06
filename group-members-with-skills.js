@@ -9,11 +9,12 @@
  * ! The list of environment variables can be found in the config/default.js file
  *
  * Usage:
- * $ node group-members-with-skills.js --groupName="Night Owls" --skillProviderName="EMSI"
+ * $ node group-members-with-skills.js --groupName="Night Owls" --skillProviderName="EMSI" --attributeGroupName="group 03"
  *
  * where
  * - groupName: Name of the group from which we need to fetch members
  * - skillProviderName: The skill provider name to be used for the skills associated with the members
+ * - attributeGroupName: The attribute group name under which the primary attributes are created (isAvailable, location, company and title)
  */
 
 //require('dotenv').config()
@@ -28,7 +29,7 @@ const fs = require('fs')
 
 const m2m = m2mAuth(_.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL']))
 
-const USAGE = 'node group-members-with-skills.js --groupName="<group_name>" --skillProviderName="<skillprovider_name>". Don\'t forget the quotes for the values.'
+const USAGE = 'node group-members-with-skills.js --groupName="<group_name>" --skillProviderName="<skillprovider_name>" --attributeGroupName="<attribute_group_name>". Don\'t forget the quotes for the values.'
 
 let token
 
@@ -230,7 +231,27 @@ async function getMemberSkills (handle) {
  * @param {Array} data Array of objects
  */
 async function getCSV (data) {
-  const columns = ['handle', 'firstName', 'lastName', 'email', 'isAvailable', 'company', 'location', 'title', 'skillProviderName', 'skillName', 'metricValue']
+  const columns = [
+    'handle',
+    'firstName',
+    'lastName',
+    'email',
+    'skillProviderName',
+    'skillName',
+    'metricValue',
+    'attributeName1',
+    'attributeGroupName1',
+    'attributeValue1',
+    'attributeName1',
+    'attributeGroupName2',
+    'attributeValue2',
+    'attributeName2',
+    'attributeGroupName3',
+    'attributeValue3',
+    'attributeName3',
+    'attributeGroupName4',
+    'attributeValue4',
+  ]
 
   try {
     const csv = parse(data, { fields: columns })
@@ -247,13 +268,16 @@ async function getCSV (data) {
 async function start () {
   const users = []
   const usersWithSkills = []
-  const { groupName, skillProviderName } = argv
+  const { groupName, skillProviderName, attributeGroupName } = argv
 
   if (!groupName) {
     console.log(`Missing group name. Correct usage: ${USAGE}`)
     return
   } else if (!skillProviderName) {
     console.log(`Missing skill provider name. Correct usage: ${USAGE}`)
+    return
+  } else if (!attributeGroupName) {
+    console.log(`Missing attribute group name. Correct usage: ${USAGE}`)
     return
   }
 
@@ -313,10 +337,18 @@ async function start () {
         firstName: users[i].firstName,
         lastName: users[i].lastName,
         email: users[i].email,
-        isAvailable: "true",
-        company: "Topcoder",
-        location,
-        title: "Member",
+        attributeName1: 'isAvailable',
+        attributeGroupName1: attributeGroupName,
+        attributeValue1: 'true',
+        attributeName2: 'company',
+        attributeGroupName2: attributeGroupName,
+        attributeValue2: 'Topcoder',
+        attributeName3: 'location',
+        attributeGroupName3: attributeGroupName,
+        attributeValue3: location,
+        attributeName4: 'title',
+        attributeGroupName4: attributeGroupName,
+        attributeValue4: 'Member',
         skillProviderName,
         skillName: skills[j].name,
         metricValue: '' + skills[j].score
