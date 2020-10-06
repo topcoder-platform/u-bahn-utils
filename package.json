@@ -12,10 +12,15 @@
   "dependencies": {
     "axios": "^0.20.0",
     "config": "^3.3.1",
+    "elasticsearch": "^16.7.1",
     "faker": "^5.1.0",
+    "http-aws-es": "^6.0.0",
     "json2csv": "^5.0.1",
     "lodash": "^4.17.20",
-    "tc-core-library-js": "appirio-tech/tc-core-library-js.git#v2.6.4",
+    "tc-core-library-js": "github:appirio-tech/tc-core-library-js#v2.6",
     "yargs": "^16.0.3"
+  },
+  "devDependencies": {
+    "standard": "^14.3.4"
   }
 }
