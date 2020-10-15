@@ -175,7 +175,7 @@ async function getMemberLocation(handle) {
       }
     })
     console.log(res.data)
-    const location = _.pick(_.get(res, 'data[0]', {}), ['homeCountryCode', 'competitionCountryCode'])
+    const location = _.pick(_.get(res, 'data', {}), ['homeCountryCode', 'competitionCountryCode'])
 
     return location.homeCountryCode || location.competitionCountryCode || 'n/a'
   } catch (error) {
