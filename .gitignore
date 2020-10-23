@@ -115,5 +115,5 @@ dist
 .yarn/install-state.gz
 .pnp.*
 
-1-create-users.csv
-2-users-with-skills.csv
+*.csv
+*.env

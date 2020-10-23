@@ -32,7 +32,6 @@ async function createSkill() {
       console.log(`${i}: ${name}`)
 
       try {
-         
         await axios.post(url, {
           skillProviderId,
           name
@@ -43,6 +42,7 @@ async function createSkill() {
         })
       } catch (error) {
         console.log(`Error for skill: '${name}'`)
+        console.log(error)
         console.log(error.message)
         fails[fails.length] = { postion: i, name}
       }

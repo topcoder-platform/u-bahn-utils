@@ -7,6 +7,18 @@
   "AUTH0_CLIENT_ID": "",
   "AUTH0_CLIENT_SECRET": "",
   "AUTH0_AUDIENCE": "https://u-bahn.topcoder.com",
+  "AUTH0_TOPCODER_AUDIENCE": "https://m2m.topcoder-dev.com/",
   "TOKEN_CACHE_TIME": 86400000,
-  "SLEEP_LENGTH": 3000
+  "SLEEP_LENGTH": 3000,
+  "GROUPS_API_URL": "https://api.topcoder-dev.com/v5/groups",
+  "USERS_API_URL": "https://api.topcoder-dev.com/v3/users",
+  "MEMBERS_API_URL": "https://api.topcoder-dev.com/v5/members",
+  "UBAHN_USERS_API_URL": "https://api.topcoder-dev.com/v5/users",
+  "ES": {
+    "HOST": "http://localhost:9200",
+    "API_VERSION": "7.4",
+    "USER_INDEX": "user",
+    "USER_TYPE": "_doc",
+    "USER_GROUP_PROPERTY_NAME": "groups"
+  }
 }
