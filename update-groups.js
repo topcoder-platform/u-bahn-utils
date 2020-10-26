@@ -9,7 +9,7 @@ const _ = require('lodash')
 const config = require('config')
 const axios = require('axios')
 const m2mAuth = require('tc-core-library-js').auth.m2m
-const elasticsearch = require('elasticsearch')
+const elasticsearch = require('@elastic/elasticsearch')
 
 const ubahnM2MConfig = _.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL'])
 const topcoderM2MConfig = _.pick(config, ['AUTH0_URL', 'AUTH0_TOPCODER_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL'])
@@ -17,6 +17,8 @@ const topcoderM2MConfig = _.pick(config, ['AUTH0_URL', 'AUTH0_TOPCODER_AUDIENCE'
 const ubahnM2M = m2mAuth({ ...ubahnM2MConfig, AUTH0_AUDIENCE: ubahnM2MConfig.AUTH0_AUDIENCE })
 
 const topcoderM2M = m2mAuth({ ...topcoderM2MConfig, AUTH0_AUDIENCE: topcoderM2MConfig.AUTH0_TOPCODER_AUDIENCE })
+
+let esClient
 
 async function sleep (ms) {
   return new Promise(resolve => setTimeout(resolve, ms))
@@ -214,25 +216,29 @@ async function getUbahnUser (handle) {
  * Returns the Elasticsearch client
  */
 async function getESClient () {
-  const host = config.ES.HOST
-  const apiVersion = config.ES.API_VERSION
-
-  // AWS ES configuration is different from other providers
-  if (/.*amazonaws.*/.test(host)) {
-    try {
-      esClient = new elasticsearch.Client({
-        apiVersion,
-        host,
-        connectionClass: require('http-aws-es') // eslint-disable-line global-require
-      })
-    } catch (error) { console.log(error) }
-  } else {
-    esClient = new elasticsearch.Client({
-      apiVersion,
-      host
-    })
+  if (esClient) {
+    return esClient
   }
-
+  const host = config.ES.HOST
+  const cloudId = config.ES.ELASTICCLOUD.id
+  if (!esClient) {
+    if (cloudId) {
+      // Elastic Cloud configuration
+      esClient = new elasticsearch.Client({
+        cloud: {
+          id: cloudId
+        },
+        auth: {
+          username: config.ES.ELASTICCLOUD.username,
+          password: config.ES.ELASTICCLOUD.password
+        }
+      })
+    } else {
+      esClient = new elasticsearch.Client({
+        node: host
+      })
+    }
+  }
   return esClient
 }
 
@@ -243,8 +249,11 @@ async function getESClient () {
  */
 async function updateGroupsForUser (userId, groups) {
   const client = await getESClient()
-  let user = await client.get({ index: config.get('ES.USER_INDEX'), type: config.get('ES.USER_TYPE'), id: userId })
-  user = user._source
+  const { body: user } = await client.getSource({
+    index: config.get('ES.USER_INDEX'),
+    type: config.get('ES.USER_TYPE'),
+    id: userId
+  })
 
   const propertyName = config.get('ES.USER_GROUP_PROPERTY_NAME')
   if (!user[propertyName]) {
@@ -257,12 +266,13 @@ async function updateGroupsForUser (userId, groups) {
 
   user[propertyName] = groupsTotal
 
-  await client.update({
+  await client.index({
     index: config.get('ES.USER_INDEX'),
     type: config.get('ES.USER_TYPE'),
     id: userId,
-    body: { doc: user },
-    refresh: 'wait_for'
+    body: user,
+    refresh: 'wait_for',
+    pipeline: config.get('ES.USER_PIPELINE_ID')
   })
 }
 
@@ -286,6 +296,7 @@ async function start () {
     for (let j = 0; j < mem.length; j++) {
       const memberId = mem[j].memberId
 
+      // eslint-disable-next-line prefer-const
       let { handle } = await getMemberRecord(memberId)
 
       if (!handle) {

@@ -10,10 +10,10 @@
   "author": "lazybaer <lazybaer@topcoder.com>",
   "license": "ISC",
   "dependencies": {
+    "@elastic/elasticsearch": "^7.9.1",
     "aws-sdk": "^2.771.0",
     "axios": "^0.20.0",
     "config": "^3.3.1",
-    "elasticsearch": "^16.7.1",
     "faker": "^5.1.0",
     "http-aws-es": "^6.0.0",
     "json2csv": "^5.0.1",

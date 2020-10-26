@@ -1,18 +1,18 @@
 /**
  * Purpose is same as update-groups.js => To copy groups info from groups
  * api to ubahn. However, approach is different:
- * - Read all users in ubahn
+ * - Read all users in ubahn first
  * - Get their topcoder user ids
  * - Use the user ids to get the group associations in groups api
  * - Copy the associations into ubahn
- * 
+ *
  * Run the script with `node update-groups-v2.js`
  */
 const _ = require('lodash')
 const config = require('config')
 const axios = require('axios')
 const m2mAuth = require('tc-core-library-js').auth.m2m
-const elasticsearch = require('elasticsearch')
+const elasticsearch = require('@elastic/elasticsearch')
 
 const ubahnM2MConfig = _.pick(config, ['AUTH0_URL', 'AUTH0_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL'])
 const topcoderM2MConfig = _.pick(config, ['AUTH0_URL', 'AUTH0_TOPCODER_AUDIENCE', 'TOKEN_CACHE_TIME', 'AUTH0_PROXY_SERVER_URL'])
@@ -117,6 +117,10 @@ async function getAllUbahnUsers () {
       const res = await axios.get(config.UBAHN_USERS_API_URL, {
         headers: {
           Authorization: `Bearer ${token}`
+        },
+        params: {
+          page,
+          perPage
         }
       })
 
@@ -178,29 +182,29 @@ async function getExternalProfile (userId) {
  * Returns the Elasticsearch client
  */
 async function getESClient () {
-  const host = config.ES.HOST
-  const apiVersion = config.ES.API_VERSION
-
   if (esClient) {
     return esClient
   }
-
-  // AWS ES configuration is different from other providers
-  if (/.*amazonaws.*/.test(host)) {
-    try {
+  const host = config.ES.HOST
+  const cloudId = config.ES.ELASTICCLOUD.id
+  if (!esClient) {
+    if (cloudId) {
+      // Elastic Cloud configuration
       esClient = new elasticsearch.Client({
-        apiVersion,
-        host,
-        connectionClass: require('http-aws-es') // eslint-disable-line global-require
+        cloud: {
+          id: cloudId
+        },
+        auth: {
+          username: config.ES.ELASTICCLOUD.username,
+          password: config.ES.ELASTICCLOUD.password
+        }
       })
-    } catch (error) { console.log(error) }
-  } else {
-    esClient = new elasticsearch.Client({
-      apiVersion,
-      host
-    })
+    } else {
+      esClient = new elasticsearch.Client({
+        node: host
+      })
+    }
   }
-
   return esClient
 }
 
@@ -211,8 +215,11 @@ async function getESClient () {
  */
 async function updateGroupsForUser (userId, groups) {
   const client = await getESClient()
-  let user = await client.get({ index: config.get('ES.USER_INDEX'), type: config.get('ES.USER_TYPE'), id: userId })
-  user = user._source
+  const { body: user } = await client.getSource({
+    index: config.get('ES.USER_INDEX'),
+    type: config.get('ES.USER_TYPE'),
+    id: userId
+  })
 
   const propertyName = config.get('ES.USER_GROUP_PROPERTY_NAME')
   if (!user[propertyName]) {
@@ -225,12 +232,13 @@ async function updateGroupsForUser (userId, groups) {
 
   user[propertyName] = groupsTotal
 
-  await client.update({
+  await client.index({
     index: config.get('ES.USER_INDEX'),
     type: config.get('ES.USER_TYPE'),
     id: userId,
-    body: { doc: user },
-    refresh: 'wait_for'
+    body: user,
+    refresh: 'wait_for',
+    pipeline: config.get('ES.USER_PIPELINE_ID')
   })
 }
 
