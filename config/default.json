@@ -16,9 +16,14 @@
   "UBAHN_USERS_API_URL": "https://api.topcoder-dev.com/v5/users",
   "ES": {
     "HOST": "http://localhost:9200",
-    "API_VERSION": "7.4",
+    "ELASTICCLOUD": {
+      "id": "",
+      "username": "",
+      "password": ""
+    },
     "USER_INDEX": "user",
     "USER_TYPE": "_doc",
-    "USER_GROUP_PROPERTY_NAME": "groups"
+    "USER_GROUP_PROPERTY_NAME": "groups",
+    "USER_PIPELINE_ID": "user-pipeline"
   }
 }
