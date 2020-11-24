@@ -17,13 +17,13 @@
  * - attributeGroupName: The attribute group name under which the primary attributes are created (isAvailable, location, company and title)
  */
 
-//require('dotenv').config()
+// require('dotenv').config()
 const _ = require('lodash')
 const config = require('config')
 const { argv } = require('yargs')
 const axios = require('axios')
 const m2mAuth = require('tc-core-library-js').auth.m2m
-const qs = require('querystring');
+const qs = require('querystring')
 const { parse } = require('json2csv')
 const fs = require('fs')
 
@@ -33,8 +33,8 @@ const USAGE = 'node group-members-with-skills.js --groupName="<group_name>" --sk
 
 let token
 
-async function sleep(ms) {
-  return new Promise(resolve => setTimeout(resolve, ms));
+async function sleep (ms) {
+  return new Promise(resolve => setTimeout(resolve, ms))
 }
 
 /**
@@ -94,7 +94,7 @@ async function getMembersInGroup (groupId) {
       const res = await axios.get(url, {
         params: {
           page,
-          perPage,
+          perPage
         },
         headers: {
           Authorization: `Bearer ${token}`
@@ -150,7 +150,7 @@ async function getMemberRecord (memberId) {
       }
     })
     console.log(res.data.result.content)
-    const user = _.pick(_.get(res, 'data.result.content[0]', {}), ['handle', 'firstName', 'lastName', 'email'] )
+    const user = _.pick(_.get(res, 'data.result.content[0]', {}), ['handle', 'firstName', 'lastName', 'email'])
 
     return user
   } catch (error) {
@@ -165,7 +165,7 @@ async function getMemberRecord (memberId) {
  * Returns the member location for the member handle
  * @param {String} handle The member handle
  */
-async function getMemberLocation(handle) {
+async function getMemberLocation (handle) {
   const token = await getM2Mtoken()
 
   try {
@@ -250,7 +250,7 @@ async function getCSV (data) {
     'attributeValue3',
     'attributeName4',
     'attributeGroupName4',
-    'attributeValue4',
+    'attributeValue4'
   ]
 
   try {
@@ -305,11 +305,11 @@ async function start () {
   console.log('Fetching the member handles for each member found in the group...')
 
   const membersFiltered = _.filter(members, (m) => {
-    return (m.membershipType === 'user') 
+    return (m.membershipType === 'user')
   })
 
-  memberIds = membersFiltered.map(m => m.memberId)
-  //const memberIds = [8547899]
+  const memberIds = membersFiltered.map(m => m.memberId)
+  // const memberIds = [8547899]
 
   for (let i = 0; i < memberIds.length; i++) {
     const user = await getMemberRecord(memberIds[i])

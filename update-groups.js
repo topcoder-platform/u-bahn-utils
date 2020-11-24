@@ -256,15 +256,15 @@ async function updateGroupsForUser (userId, groups) {
   })
 
   const propertyName = config.get('ES.USER_GROUP_PROPERTY_NAME')
-  if (!user[propertyName]) {
-    user[propertyName] = []
-  }
+  // if (!user[propertyName]) {
+  //   user[propertyName] = []
+  // }
 
-  let groupsTotal = user[propertyName].concat(groups)
+  // let groupsTotal = user[propertyName].concat(groups)
 
-  groupsTotal = _.uniqBy(groupsTotal, (g) => g.groupId)
+  // groupsTotal = _.uniqBy(groupsTotal, (g) => g.id)
 
-  user[propertyName] = groupsTotal
+  user[propertyName] = _.uniqBy(groups, (g) => g.id)
 
   await client.index({
     index: config.get('ES.USER_INDEX'),
@@ -317,7 +317,7 @@ async function start () {
       }
 
       final[ubahnuser[0].id].push({
-        groupId: groups[i].id,
+        id: groups[i].id,
         name: groups[i].name
       })
     }
