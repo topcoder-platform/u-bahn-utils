@@ -222,15 +222,15 @@ async function updateGroupsForUser (userId, groups) {
   })
 
   const propertyName = config.get('ES.USER_GROUP_PROPERTY_NAME')
-  if (!user[propertyName]) {
-    user[propertyName] = []
-  }
+  // if (!user[propertyName]) {
+  //   user[propertyName] = []
+  // }
 
-  let groupsTotal = user[propertyName].concat(groups)
+  // let groupsTotal = user[propertyName].concat(groups)
 
-  groupsTotal = _.uniqBy(groupsTotal, (g) => g.groupId)
+  // groupsTotal = _.uniqBy(groupsTotal, (g) => g.id)
 
-  user[propertyName] = groupsTotal
+  user[propertyName] = _.uniqBy(groups, (g) => g.id)
 
   await client.index({
     index: config.get('ES.USER_INDEX'),
@@ -265,7 +265,7 @@ async function start () {
       const memberId = externalProfiles[j].externalId
       console.log(`Getting groups of user with id ${memberId}`)
       let groups = await getGroupsOfUser(memberId)
-      groups = groups.map(g => ({ groupId: g.id, name: g.name }))
+      groups = groups.map(g => ({ id: g.id, name: g.name }))
 
       if (groups.length > 0) {
         if (!final[userId]) {
